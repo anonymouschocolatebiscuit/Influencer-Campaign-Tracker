@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Influencer Campaign Tracker</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <style>
+        :root {
+            --primary-color: #6c5ce7;
+            --secondary-color: #a29bfe;
+        }
+        .platform-badge {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+        }
+        .badge-twitch {
+            background-color: #9147ff;
+            color: white;
+        }
+        .badge-youtube {
+            background-color: #ff0000;
+            color: white;
+        }
+        .badge-instagram {
+            background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+            color: white;
+        }
+        .kpi-card {
+            border-left: 4px solid var(--primary-color);
+            transition: transform 0.2s;
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+        .approval-card {
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+        }
+        .status-pending {
+            border-left: 4px solid #ffc107;
+        }
+        .status-approved {
+            border-left: 4px solid #28a745;
+        }
+        .contract-preview {
+            background: #f8f9fa;
+            min-height: 300px;
+            border: 1px dashed #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .influencer-table-container {
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+        }
+        #influencersTable thead th {
+            position: sticky;
+            top: -5;
+            background: #fff;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body style="min-height: 100vh; margin: 0;">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse" style="display: flex; flex-direction: column; height: 100vh; background: #eee;">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#dashboard" data-bs-toggle="tab">
+                                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#influencers" data-bs-toggle="tab">
+                                <i class="fas fa-users me-2"></i>Influencers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#campaigns" data-bs-toggle="tab">
+                                <i class="fas fa-bullhorn me-2"></i>Campaigns
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#approvals" data-bs-toggle="tab">
+                                <i class="fas fa-check-circle me-2"></i>Content Approvals
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#contracts" data-bs-toggle="tab">
+                                <i class="fas fa-file-signature me-2"></i>Contracts
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                <div class="tab-content">
+                    <!-- Dashboard Tab -->
+                    <div class="tab-pane fade show active" id="dashboard">
+                        <h2 class="h4 mb-4">Campaign Overview</h2>
+                        
+                        <!-- KPI Cards -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card kpi-card shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-2 text-muted">Active Campaigns</h6>
+                                        <h3 class="card-title">4</h3>
+                                        <p class="card-text text-success">
+                                            <i class="fas fa-arrow-up"></i> 12% from last month
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card kpi-card shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-2 text-muted">Total Influencers</h6>
+                                        <h3 class="card-title">28</h3>
+                                        <p class="card-text">
+                                            <span class="badge bg-twitch">12 Twitch</span>
+                                            <span class="badge bg-danger">9 YouTube</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card kpi-card shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-2 text-muted">Avg. Conversion</h6>
+                                        <h3 class="card-title">3.8%</h3>
+                                        <div class="progress mt-2" style="height: 8px;">
+                                            <div class="progress-bar bg-warning" style="width: 65%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card kpi-card shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-subtitle mb-2 text-muted">Pending Approvals</h6>
+                                        <h3 class="card-title">7</h3>
+                                        <a href="#approvals" class="btn btn-sm btn-outline-primary" data-bs-toggle="tab">Review</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Campaign Performance Chart -->
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                Campaign Performance (Last 30 Days)
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Campaign</th>
+                                            <th>Impressions</th>
+                                            <th>Clicks</th>
+                                            <th>Conversions</th>
+                                            <th>CTR (%)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Spring Sale</td>
+                                            <td>12,000</td>
+                                            <td>1,200</td>
+                                            <td>150</td>
+                                            <td>10.0</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Summer Launch</td>
+                                            <td>8,500</td>
+                                            <td>900</td>
+                                            <td>110</td>
+                                            <td>10.6</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Back to School</td>
+                                            <td>15,000</td>
+                                            <td>1,800</td>
+                                            <td>200</td>
+                                            <td>12.0</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Recent Activity</h6>
+                                <a href="#" class="btn btn-sm btn-outline-secondary">View All</a>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="badge bg-success me-2">Approved</span>
+                                            Video from @GamerQueen for Summer Launch
+                                        </div>
+                                        <small class="text-muted">2 hours ago</small>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="badge bg-warning me-2">Pending</span>
+                                            Contract signed by @TechReviewPro
+                                        </div>
+                                        <small class="text-muted">1 day ago</small>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Influencers Tab -->
+                    <div class="tab-pane fade" id="influencers">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="h4">Influencer Management</h2>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addInfluencerModal">
+                                <i class="fas fa-plus me-1"></i> Add Influencer
+                            </button>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" placeholder="Search influencers...">
+                                            <button class="btn btn-outline-secondary" type="button">
+                                                <i class="fas fa-search"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-outline-secondary" data-platform="All">All</button>
+                                            <button type="button" class="btn btn-outline-secondary" data-platform="Twitch">Twitch</button>
+                                            <button type="button" class="btn btn-outline-secondary" data-platform="YouTube">YouTube</button>
+                                            <button type="button" class="btn btn-outline-secondary" data-platform="Instagram">Instagram</button>
+                                            <button type="button" class="btn btn-outline-secondary" data-platform="TikTok">TikTok</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body influencer-table-container">
+                                <table id="influencersTable" class="table table-hover w-100">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Platform</th>
+                                            <th>Followers</th>
+                                            <th>Rate</th>
+                                            <th>Engagement</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                    <span>GamerQueen</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-twitch platform-badge">Twitch</span></td>
+                                            <td>125,000</td>
+                                            <td>$3,500</td>
+                                            <td>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-success" style="width: 85%"></div>
+                                                </div>
+                                                <small class="text-muted">85%</small>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                    <span>TechReviewPro</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-youtube platform-badge">YouTube</span></td>
+                                            <td>89,000</td>
+                                            <td>$2,800</td>
+                                            <td>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-info" style="width: 72%"></div>
+                                                </div>
+                                                <small class="text-muted">72%</small>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                    <span>FashionInfluencer</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-instagram platform-badge">Instagram</span></td>
+                                            <td>210,000</td>
+                                            <td>$4,200</td>
+                                            <td>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-warning" style="width: 78%"></div>
+                                                </div>
+                                                <small class="text-muted">78%</small>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                    <span>DanceMaster</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-instagram platform-badge">TikTok</span></td>
+                                            <td>450,000</td>
+                                            <td>$5,500</td>
+                                            <td>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-success" style="width: 92%"></div>
+                                                </div>
+                                                <small class="text-muted">92%</small>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                    <span>TechGuru</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-youtube platform-badge">YouTube</span></td>
+                                            <td>180,000</td>
+                                            <td>$3,800</td>
+                                            <td>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-info" style="width: 81%"></div>
+                                                </div>
+                                                <small class="text-muted">81%</small>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                    <span>GamingPro</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-twitch platform-badge">Twitch</span></td>
+                                            <td>95,000</td>
+                                            <td>$2,500</td>
+                                            <td>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-success" style="width: 76%"></div>
+                                                </div>
+                                                <small class="text-muted">76%</small>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                    <span>BeautyQueen</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-instagram platform-badge">Instagram</span></td>
+                                            <td>320,000</td>
+                                            <td>$4,800</td>
+                                            <td>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-warning" style="width: 88%"></div>
+                                                </div>
+                                                <small class="text-muted">88%</small>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                    <span>FitnessCoach</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-instagram platform-badge">TikTok</span></td>
+                                            <td>280,000</td>
+                                            <td>$3,200</td>
+                                            <td>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-success" style="width: 84%"></div>
+                                                </div>
+                                                <small class="text-muted">84%</small>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                    <span>ComedyKing</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-youtube platform-badge">YouTube</span></td>
+                                            <td>150,000</td>
+                                            <td>$2,900</td>
+                                            <td>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-info" style="width: 79%"></div>
+                                                </div>
+                                                <small class="text-muted">79%</small>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                    <span>TravelVlogger</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge badge-youtube platform-badge">YouTube</span></td>
+                                            <td>110,000</td>
+                                            <td>$2,600</td>
+                                            <td>
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-success" style="width: 82%"></div>
+                                                </div>
+                                                <small class="text-muted">82%</small>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campaigns Tab -->
+                    <div class="tab-pane fade" id="campaigns">
+                        <h2 class="h4 mb-4">Campaign Management</h2>
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card mb-4">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">Active Campaigns</h6>
+                                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#newCampaignModal">New Campaign</button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Campaign Name</th>
+                                                        <th>Status</th>
+                                                        <th>Start Date</th>
+                                                        <th>End Date</th>
+                                                        <th>Influencers</th>
+                                                        <th>Progress</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Summer Game Launch</td>
+                                                        <td><span class="badge bg-success">Active</span></td>
+                                                        <td>2024-06-01</td>
+                                                        <td>2024-07-01</td>
+                                                        <td>
+                                                            <div class="d-flex flex-column">
+                                                                <small class="text-muted">GamerQueen</small>
+                                                                <small class="text-muted">DanceMaster</small>
+                                                                <small class="text-muted">BeautyQueen</small>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="progress" style="height: 6px;">
+                                                                <div class="progress-bar" style="width: 65%"></div>
+                                                            </div>
+                                                            <small>65% complete</small>
+                                                        </td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-outline-primary view-campaign-btn" data-campaign='{"name":"Summer Game Launch","status":"Active","start":"2024-06-01","end":"2024-07-01","influencers":["GamerQueen","DanceMaster","BeautyQueen"],"progress":"65%"}'>View</button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Quick Stats</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <h6 class="text-muted mb-1">Total Budget</h6>
+                                            <h4>$42,000</h4>
+                                        </div>
+                                        <div class="mb-3">
+                                            <h6 class="text-muted mb-1">Avg. Impressions</h6>
+                                            <h4>38,200</h4>
+                                        </div>
+                                        <div>
+                                            <h6 class="text-muted mb-1">Top Performer</h6>
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" width="30" alt="Influencer" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                <span>GamerQueen</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Past Campaigns -->
+                        <div class="row mt-4">
+                            <div class="col-md-8">
+                                <div class="card mb-4">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">Past Campaigns</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Campaign Name</th>
+                                                        <th>Status</th>
+                                                        <th>Start Date</th>
+                                                        <th>End Date</th>
+                                                        <th>Influencers</th>
+                                                        <th>Progress</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>                              
+                                                    <tr>
+                                                        <td>Spring Sale</td>
+                                                        <td><span class="badge bg-danger">Past</span></td>
+                                                        <td>2024-04-01</td>
+                                                        <td>2024-04-30</td>
+                                                        <td>
+                                                            <div class="d-flex flex-column">
+                                                                <small class="text-muted">TechReviewPro</small>
+                                                                <small class="text-muted">FashionInfluencer</small>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="progress" style="height: 6px;">
+                                                                <div class="progress-bar bg-success" style="width: 100%"></div>
+                                                            </div>
+                                                            <small>100% complete</small>
+                                                        </td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-outline-primary view-campaign-btn" data-campaign='{"name":"Spring Sale","status":"Past","start":"2024-04-01","end":"2024-04-30","influencers":["TechReviewPro","FashionInfluencer"],"progress":"100%"}'>View</button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Summer Launch</td>
+                                                        <td><span class="badge bg-danger">Past</span></td>
+                                                        <td>2024-05-01</td>
+                                                        <td>2024-05-31</td>
+                                                        <td>
+                                                            <div class="d-flex flex-column">
+                                                                <small class="text-muted">TechGuru</small>
+                                                                <small class="text-muted">GamingPro</small>
+                                                                <small class="text-muted">ComedyKing</small>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="progress" style="height: 6px;">
+                                                                <div class="progress-bar bg-success" style="width: 100%"></div>
+                                                            </div>
+                                                            <small>100% complete</small>
+                                                        </td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-outline-primary view-campaign-btn" data-campaign='{"name":"Summer Launch","status":"Past","start":"2024-05-01","end":"2024-05-31","influencers":["TechGuru","GamingPro","ComedyKing"],"progress":"100%"}'>View</button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Back to School</td>
+                                                        <td><span class="badge bg-danger">Past</span></td>
+                                                        <td>2024-03-01</td>
+                                                        <td>2024-03-31</td>
+                                                        <td>
+                                                            <div class="d-flex flex-column">
+                                                                <small class="text-muted">FitnessCoach</small>
+                                                                <small class="text-muted">TravelVlogger</small>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="progress" style="height: 6px;">
+                                                                <div class="progress-bar bg-success" style="width: 100%"></div>
+                                                            </div>
+                                                            <small>100% complete</small>
+                                                        </td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-outline-primary view-campaign-btn" data-campaign='{"name":"Back to School","status":"Past","start":"2024-03-01","end":"2024-03-31","influencers":["FitnessCoach","TravelVlogger"],"progress":"100%"}'>View</button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Past Campaign Stats</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <h6 class="text-muted mb-1">Total Completed</h6>
+                                            <h4>12</h4>
+                                        </div>
+                                        <div class="mb-3">
+                                            <h6 class="text-muted mb-1">Avg. Performance</h6>
+                                            <h4>89%</h4>
+                                        </div>
+                                        <div>
+                                            <h6 class="text-muted mb-1">Best Performer</h6>
+                                            <div class="d-flex align-items-center">
+                                                <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" width="30" alt="Influencer" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                <span>GamerQueen</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Approvals Tab -->
+                    <div class="tab-pane fade" id="approvals">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h2 class="h4 mb-0">Content Approval Workflow</h2>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newContentModal">New Content</button>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0">Pending Review (3)</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="approval-card status-pending p-3 mb-3">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <strong>Summer Game Launch</strong>
+                                                <small class="text-muted">2 days ago</small>
+                                            </div>
+                                            <p class="mb-2">Video Review - Gameplay Highlights</p>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" width="24" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                <small>@GamerQueen</small>
+                                            </div>
+                                            <div class="btn-group w-100">
+                                                <button class="btn btn-sm btn-success">Approve</button>
+                                                <button class="btn btn-sm btn-danger">Reject</button>
+                                                <button class="btn btn-sm btn-outline-secondary">Preview</button>
+                                            </div>
+                                        </div>
+                                        <div class="approval-card status-pending p-3 mb-3">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <strong>Spring Sale</strong>
+                                                <small class="text-muted">1 day ago</small>
+                                            </div>
+                                            <p class="mb-2">Instagram Post - Product Unboxing</p>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" width="24" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                <small>@FashionInfluencer</small>
+                                            </div>
+                                            <div class="btn-group w-100">
+                                                <button class="btn btn-sm btn-success">Approve</button>
+                                                <button class="btn btn-sm btn-danger">Reject</button>
+                                                <button class="btn btn-sm btn-outline-secondary">Preview</button>
+                                            </div>
+                                        </div>
+                                        <div class="approval-card status-pending p-3 mb-3">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <strong>Back to School</strong>
+                                                <small class="text-muted">3 hours ago</small>
+                                            </div>
+                                            <p class="mb-2">TikTok Dance Challenge Submission</p>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" width="24" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                <small>@DanceMaster</small>
+                                            </div>
+                                            <div class="btn-group w-100">
+                                                <button class="btn btn-sm btn-success">Approve</button>
+                                                <button class="btn btn-sm btn-danger">Reject</button>
+                                                <button class="btn btn-sm btn-outline-secondary">Preview</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0">Approved (3)</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="approval-card status-approved p-3 mb-3">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <strong>Product Unboxing</strong>
+                                                <small class="text-muted">1 week ago</small>
+                                            </div>
+                                            <p class="mb-2">Sponsored Post - Tech Gadget</p>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" width="24" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                <small>@TechReviewPro</small>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-secondary w-100">View Details</button>
+                                        </div>
+                                        <div class="approval-card status-approved p-3 mb-3">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <strong>Spring Sale</strong>
+                                                <small class="text-muted">3 days ago</small>
+                                            </div>
+                                            <p class="mb-2">Instagram Story - Promo Code Reveal</p>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" width="24" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                <small>@BeautyQueen</small>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-secondary w-100">View Details</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h6 class="mb-0">Rejected (1)</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="approval-card p-3 mb-3">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <strong>Brand Hashtag</strong>
+                                                <small class="text-muted">3 days ago</small>
+                                            </div>
+                                            <p class="mb-2">Incorrect branding guidelines</p>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <img src="https://ui-avatars.com/api/?name=Influencer" class="rounded-circle me-2" width="24" alt="Profile" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=Influencer';">
+                                                <small>@FashionInfluencer</small>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-primary w-100">Resubmit Request</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contracts Tab -->
+                    <div class="tab-pane fade" id="contracts">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="h4">Contract Management</h2>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newContractModal">
+                                <i class="fas fa-plus me-1"></i> New Contract
+                            </button>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Active Contracts</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="list-group">
+                                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-1">GamerQueen - Summer Campaign</h6>
+                                                    <small class="text-muted">Expires: 15/08/2023</small>
+                                                </div>
+                                                <span class="badge bg-success">Active</span>
+                                            </a>
+                                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-1">TechReviewPro - Product Review</h6>
+                                                    <small class="text-muted">Expires: 30/09/2023</small>
+                                                </div>
+                                                <span class="badge bg-success">Active</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Past Contracts</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="list-group">
+                                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-1">TechReviewPro - Product Review</h6>
+                                                    <small class="text-muted">Expires: 30/09/2022</small>
+                                                </div>
+                                                <span class="badge bg-secondary">Expired</span>
+                                            </a>
+                                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-1">FashionInfluencer - Spring Promo</h6>
+                                                    <small class="text-muted">Expires: 15/06/2022</small>
+                                                </div>
+                                                <span class="badge bg-secondary">Expired</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Payment Status</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Contract</th>
+                                                        <th>Amount</th>
+                                                        <th>Status</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>GamerQueen - Summer Campaign</td>
+                                                        <td>$3,500</td>
+                                                        <td><span class="badge bg-warning">Pending</span></td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-success mark-paid-btn" title="Mark as Paid">
+                                                                <i class="fas fa-money-bill-wave"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Product Review</td>
+                                                        <td>$2,800</td>
+                                                        <td><span class="badge bg-warning">Pending</span></td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-success mark-paid-btn" title="Mark as Paid">
+                                                                <i class="fas fa-money-bill-wave"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>TechReviewPro - Product Review</td>
+                                                        <td>$2,800</td>
+                                                        <td><span class="badge bg-success">Paid</span></td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-success mark-paid-btn" title="Mark as Paid">
+                                                                <i class="fas fa-money-bill-wave"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>FashionInfluencer - Spring Promo</td>
+                                                        <td>$4,200</td>
+                                                        <td><span class="badge bg-success">Paid</span></td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-success mark-paid-btn" title="Mark as Paid">
+                                                                <i class="fas fa-money-bill-wave"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <div class="card h-100">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">Contract Preview</h6>
+                                        <div>
+                                            <button class="btn btn-sm btn-outline-secondary me-1">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="contract-preview">
+                                            <div class="text-center">
+                                                <i class="fas fa-file-contract fa-3x mb-3 text-muted"></i>
+                                                <h5>Contract Document Preview</h5>
+                                                <p class="text-muted">GamerQueen - Summer Campaign Agreement</p>
+                                                <div class="signature-placeholder mt-4" style="border-top: 1px solid #dee2e6; width: 200px; padding-top: 10px;">
+                                                    <small class="text-muted">Signature</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Influencer Modal -->
+    <div class="modal fade" id="addInfluencerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="influencerModalTitle">Add New Influencer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="influencerForm">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" id="influencerName">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Platform</label>
+                            <select class="form-select" id="influencerPlatform">
+                                <option>Twitch</option>
+                                <option>YouTube</option>
+                                <option>Instagram</option>
+                                <option>TikTok</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Followers</label>
+                                <input type="number" class="form-control" id="influencerFollowers">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Rate ($)</label>
+                                <input type="number" class="form-control" id="influencerRate">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contact Email</label>
+                            <input type="email" class="form-control" id="influencerEmail">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer" id="influencerModalFooter">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveInfluencerBtn">Save Influencer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Campaign Modal -->
+    <div class="modal fade" id="newCampaignModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Campaign</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newCampaignForm">
+                        <div class="mb-3">
+                            <label class="form-label">Campaign Name</label>
+                            <input type="text" class="form-control" id="campaignName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="campaignStart" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="campaignEnd" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Influencers</label>
+                            <select class="form-select" id="campaignInfluencers" multiple required>
+                                <!-- Influencer options will be populated by JS -->
+                            </select>
+                            <small class="text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="createCampaignBtn">Create Campaign</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Campaign Modal -->
+    <div class="modal fade" id="viewCampaignModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">View Campaign</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Campaign Name</label>
+                            <input type="text" class="form-control" id="viewCampaignName" readonly style="background:#f8f9fa;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <input type="text" class="form-control" id="viewCampaignStatus" readonly style="background:#f8f9fa;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="viewCampaignStart" readonly style="background:#f8f9fa;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="viewCampaignEnd" readonly style="background:#f8f9fa;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Influencers</label>
+                            <select class="form-select" id="viewCampaignInfluencers" multiple disabled style="background:#f8f9fa;">
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal for Approve/Reject -->
+    <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmActionTitle">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmActionText">Are you sure you want to Approve this submission?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmActionBtn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Preview/Details Modal -->
+    <div class="modal fade" id="contentDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="contentDetailTitle">Submission Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Campaign</label>
+                            <input type="text" class="form-control" id="contentDetailCampaign" readonly style="background:#f8f9fa;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Influencer</label>
+                            <input type="text" class="form-control" id="contentDetailInfluencer" readonly style="background:#f8f9fa;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Date</label>
+                            <input type="text" class="form-control" id="contentDetailDate" readonly style="background:#f8f9fa;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="contentDetailDesc" rows="2" readonly style="background:#f8f9fa;"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Content Modal -->
+    <div class="modal fade" id="newContentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Content</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newContentForm">
+                        <div class="mb-3">
+                            <label class="form-label">Campaign</label>
+                            <input type="text" class="form-control" id="newContentCampaign" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Influencer</label>
+                            <select class="form-select" id="newContentInfluencer" required>
+                                <!-- Options will be populated by JS -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control" id="newContentDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="newContentDesc" rows="2" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveNewContentBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Contract Modal -->
+    <div class="modal fade" id="newContractModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Contract</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newContractForm">
+                        <div class="mb-3">
+                            <label class="form-label">Influencer</label>
+                            <select class="form-select" id="newContractInfluencer" required>
+                                <!-- Options will be populated by JS -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Amount</label>
+                            <input type="number" class="form-control" id="newContractAmount" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Campaign</label>
+                            <input type="text" class="form-control" id="newContractCampaign" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Expired On</label>
+                            <input type="date" class="form-control" id="newContractExpired" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveNewContractBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTable
+            var table = $('#influencersTable').DataTable({
+                responsive: true
+            });
+            
+            // Tab persistence
+            $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                localStorage.setItem('lastTab', $(e.target).attr('href'));
+            });
+
+            var lastTab = localStorage.getItem('lastTab');
+            if (lastTab) {
+                var $tab = $('[href="' + lastTab + '"]');
+                if (
+                    $tab.length &&
+                    $tab.is('a') &&
+                    $tab.attr('data-bs-toggle') === 'tab' &&
+                    $tab.is(':visible')
+                ) {
+                    try {
+                        $tab.tab('show');
+                    } catch (e) {
+                        console.warn('Tab restore failed:', e);
+                    }
+                }
+            }
+            
+            // Simulate chart loading
+            setTimeout(function() {
+                $('.chart-placeholder').html('<canvas id="campaignChart" height="300"></canvas>');
+                // In a real implementation, you would initialize Chart.js here
+            }, 500);
+
+            // Platform filter
+            $('.btn-group [data-platform]').on('click', function() {
+                var platform = $(this).data('platform');
+                if (platform === 'All') {
+                    table.search('').draw();
+                } else {
+                    table.search(platform).draw();
+                }
+                // Set active state
+                $('.btn-group [data-platform]').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            // Influencer View/Edit
+            $('#influencersTable').on('click', '.fa-eye', function() {
+                var row = $(this).closest('tr');
+                var name = row.find('td:eq(0) .d-flex span').text().trim();
+                var platform = row.find('td:eq(1) .badge').text().trim();
+                var followers = row.find('td:eq(2)').text().trim().replace(/,/g, '');
+                var rate = row.find('td:eq(3)').text().trim().replace(/\$/g, '');
+                // For demo, email is blank
+                var email = '';
+                // Fill modal
+                $('#influencerName').val(name).prop('readonly', true).css('background-color', '#f8f9fa');
+                $('#influencerPlatform').val(platform).prop('disabled', true).css('background-color', '#f8f9fa');
+                $('#influencerFollowers').val(followers).prop('readonly', true).css('background-color', '#f8f9fa');
+                $('#influencerRate').val(rate).prop('readonly', true).css('background-color', '#f8f9fa');
+                $('#influencerEmail').val(email).prop('readonly', true).css('background-color', '#f8f9fa');
+                // Modal title and footer
+                $('#influencerModalTitle').text('View Influencer');
+                $('#saveInfluencerBtn').hide();
+                $('#influencerModalFooter .btn-secondary').text('Cancel');
+                $('#addInfluencerModal').modal('show');
+            });
+            $('#influencersTable').on('click', '.fa-edit', function() {
+                var row = $(this).closest('tr');
+                var name = row.find('td:eq(0) .d-flex span').text().trim();
+                var platform = row.find('td:eq(1) .badge').text().trim();
+                var followers = row.find('td:eq(2)').text().trim().replace(/,/g, '');
+                var rate = row.find('td:eq(3)').text().trim().replace(/\$/g, '');
+                var email = '';
+                // Fill modal
+                $('#influencerName').val(name).prop('readonly', false).css('background-color', '');
+                $('#influencerPlatform').val(platform).prop('disabled', false).css('background-color', '');
+                $('#influencerFollowers').val(followers).prop('readonly', false).css('background-color', '');
+                $('#influencerRate').val(rate).prop('readonly', false).css('background-color', '');
+                $('#influencerEmail').val(email).prop('readonly', false).css('background-color', '');
+                // Modal title and footer
+                $('#influencerModalTitle').text('Edit Influencer');
+                $('#saveInfluencerBtn').show().text('Update Influencer');
+                $('#influencerModalFooter .btn-secondary').text('Cancel');
+                $('#addInfluencerModal').modal('show');
+            });
+            // Reset modal on open for add
+            $('[data-bs-target="#addInfluencerModal"]').on('click', function() {
+                $('#influencerModalTitle').text('Add New Influencer');
+                $('#influencerForm input, #influencerForm select').prop('readonly', false).prop('disabled', false).val('');
+                $('#saveInfluencerBtn').show().text('Save Influencer');
+                $('#influencerModalFooter .btn-secondary').text('Cancel');
+            });
+
+            // Handle Review button click
+            $('a[href="#approvals"]').on('click', function(e) {
+                e.preventDefault();
+                // Remove active class from all nav links
+                $('.nav-link').removeClass('active');
+                // Add active class to approvals nav link
+                $('a[href="#approvals"]').addClass('active');
+                // Show the approvals tab
+                $('.tab-pane').removeClass('show active');
+                $('#approvals').addClass('show active');
+            });
+
+            // Populate influencer multi-select in New Campaign modal
+            var influencerNames = [
+                'GamerQueen',
+                'TechReviewPro',
+                'FashionInfluencer',
+                'DanceMaster',
+                'TechGuru',
+                'GamingPro',
+                'BeautyQueen',
+                'FitnessCoach',
+                'ComedyKing',
+                'TravelVlogger'
+            ];
+            var $influencerSelect = $('#campaignInfluencers');
+            $influencerSelect.empty();
+            influencerNames.forEach(function(name) {
+                $influencerSelect.append('<option value="' + name + '">' + name + '</option>');
+            });
+            // Optional: Reset form on modal open
+            $('#newCampaignModal').on('show.bs.modal', function() {
+                $('#newCampaignForm')[0].reset();
+                $influencerSelect.val([]);
+            });
+
+            // View Campaign Modal logic
+            $(document).on('click', '.view-campaign-btn', function() {
+                var data = $(this).data('campaign');
+                if (typeof data === 'string') data = JSON.parse(data);
+                $('#viewCampaignName').val(data.name);
+                $('#viewCampaignStatus').val(data.status);
+                $('#viewCampaignStart').val(data.start);
+                $('#viewCampaignEnd').val(data.end);
+                // Populate influencers
+                var $select = $('#viewCampaignInfluencers');
+                $select.empty();
+                var allInfluencers = [
+                    'GamerQueen','TechReviewPro','FashionInfluencer','DanceMaster','TechGuru','GamingPro','BeautyQueen','FitnessCoach','ComedyKing','TravelVlogger'
+                ];
+                allInfluencers.forEach(function(name) {
+                    var selected = data.influencers.includes(name) ? 'selected' : '';
+                    $select.append('<option '+selected+'>'+name+'</option>');
+                });
+                $('#viewCampaignModal').modal('show');
+            });
+
+            // Approve/Reject confirmation modal logic
+            $(document).on('click', '.btn-success, .btn-danger', function() {
+                var isApprove = $(this).hasClass('btn-success');
+                var action = isApprove ? 'Approve' : 'Reject';
+                $('#confirmActionTitle').text('Confirm ' + action);
+                $('#confirmActionText').text('Are you sure you want to ' + action + ' this submission?');
+                $('#confirmActionBtn').text('Confirm ' + action).removeClass('btn-success btn-danger').addClass(isApprove ? 'btn-success' : 'btn-danger');
+                $('#confirmActionModal').modal('show');
+            });
+            // Optional: handle confirm action
+            $('#confirmActionBtn').on('click', function() {
+                $('#confirmActionModal').modal('hide');
+                // You can add logic here to actually approve/reject
+            });
+
+            // Preview/View Details modal logic
+            $(document).on('click', '.btn-outline-secondary', function() {
+                var btnText = $(this).text().trim();
+                if (btnText !== 'Preview' && btnText !== 'View Details') return;
+                var $card = $(this).closest('.approval-card');
+                var campaign = $card.find('strong').first().text().trim();
+                var date = $card.find('.d-flex.justify-content-between small').last().text().trim();
+                var desc = $card.find('p').first().text().trim();
+                var influencer = $card.find('.d-flex.align-items-center small').last().text().trim();
+                $('#contentDetailTitle').text(btnText === 'Preview' ? 'Preview Submission' : 'Submission Details');
+                $('#contentDetailCampaign').val(campaign);
+                $('#contentDetailInfluencer').val(influencer);
+                $('#contentDetailDate').val(date);
+                $('#contentDetailDesc').val(desc);
+                $('#contentDetailModal').modal('show');
+            });
+
+            // Resubmit Request confirmation modal logic
+            $(document).on('click', '.approval-card .btn-outline-primary', function() {
+                var btnText = $(this).text().trim();
+                if (btnText !== 'Resubmit Request') return;
+                $('#confirmActionTitle').text('Confirm Resubmission');
+                $('#confirmActionText').text('Are you sure you want to resubmit this request?');
+                $('#confirmActionBtn').text('Confirm Resubmit').removeClass('btn-success btn-danger').addClass('btn-primary');
+                $('#confirmActionModal').modal('show');
+            });
+
+            // Populate influencer single-select in New Content modal
+            var influencerNames = [
+                'GamerQueen',
+                'TechReviewPro',
+                'FashionInfluencer',
+                'DanceMaster',
+                'TechGuru',
+                'GamingPro',
+                'BeautyQueen',
+                'FitnessCoach',
+                'ComedyKing',
+                'TravelVlogger'
+            ];
+            var $newContentInfluencer = $('#newContentInfluencer');
+            $newContentInfluencer.empty();
+            influencerNames.forEach(function(name) {
+                $newContentInfluencer.append('<option value="' + name + '">' + name + '</option>');
+            });
+            // Optional: Reset form on modal open
+            $('#newContentModal').on('show.bs.modal', function() {
+                $('#newContentForm')[0].reset();
+                $newContentInfluencer.val('');
+            });
+
+            // Populate influencer single-select in New Contract modal
+            var influencerNames = [
+                'GamerQueen',
+                'TechReviewPro',
+                'FashionInfluencer',
+                'DanceMaster',
+                'TechGuru',
+                'GamingPro',
+                'BeautyQueen',
+                'FitnessCoach',
+                'ComedyKing',
+                'TravelVlogger'
+            ];
+            var $newContractInfluencer = $('#newContractInfluencer');
+            $newContractInfluencer.empty();
+            influencerNames.forEach(function(name) {
+                $newContractInfluencer.append('<option value="' + name + '">' + name + '</option>');
+            });
+            // Optional: Reset form on modal open
+            $('#newContractModal').on('show.bs.modal', function() {
+                $('#newContractForm')[0].reset();
+                $newContractInfluencer.val('');
+            });
+
+            // Add confirmation modal logic for Mark as Paid
+            $(document).on('click', '.mark-paid-btn', function() {
+                $('#confirmActionTitle').text('Confirm Payment');
+                $('#confirmActionText').text('Are you sure you want to mark this contract as Paid?');
+                $('#confirmActionBtn').text('Confirm Paid').removeClass('btn-danger btn-primary').addClass('btn-success');
+                $('#confirmActionModal').modal('show');
+            });
+        });
+    </script>
+</body>
+</html>
